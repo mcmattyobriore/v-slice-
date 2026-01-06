@@ -80,7 +80,7 @@
     <button onclick="exportJSON()">⤓ Export JSON</button>
   </div>
 
-  <strong>Player (0–3)</strong>
+  <strong>Player (0–3) [Arrow Keys]</strong>
   <div class="row">
     <button onclick="addNote(0)">⬅</button>
     <button onclick="addNote(1)">⬇</button>
@@ -88,12 +88,12 @@
     <button onclick="addNote(3)">➡</button>
   </div>
 
-  <strong>Opponent (4–7)</strong>
+  <strong>Opponent (4–7) [WASD]</strong>
   <div class="row">
-    <button onclick="addNote(4)">⬅</button>
-    <button onclick="addNote(5)">⬇</button>
-    <button onclick="addNote(6)">⬆</button>
-    <button onclick="addNote(7)">➡</button>
+    <button onclick="addNote(4)">⬅ (A)</button>
+    <button onclick="addNote(5)">⬇ (S)</button>
+    <button onclick="addNote(6)">⬆ (W)</button>
+    <button onclick="addNote(7)">➡ (D)</button>
   </div>
 
   <strong>Sprite Previews (PNG + XML)</strong>
@@ -133,19 +133,39 @@ const laneColors = [
   "#bb55ff"  // purple
 ];
 
+// ---------------- KEYBOARD INPUT ----------------
+window.addEventListener("keydown", (e) => {
+  // Prevent key placement if user is typing in the JSON box
+  if (document.activeElement === jsonInput) return;
+
+  switch(e.key.toLowerCase()) {
+    // Player Controls (Arrows)
+    case "arrowleft":  addNote(0); break;
+    case "arrowdown":  addNote(1); break;
+    case "arrowup":    addNote(2); break;
+    case "arrowright": addNote(3); break;
+    
+    // Opponent Controls (WASD)
+    case "a": addNote(4); break;
+    case "s": addNote(5); break;
+    case "w": addNote(6); break;
+    case "d": addNote(7); break;
+    
+    // Play/Pause shortcut (Space)
+    case " ":
+      e.preventDefault();
+      playing ? pauseAudio() : playAudio();
+      break;
+  }
+});
+
 // ---------------- DEFAULT JSON ----------------
 chartData = {
   version: "2.0.0",
-  "scrollSpeed": {
-    "easy": 1.8,
-    "normal": 2,
-    "hard": 2.2
-  },
+  "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
   "events": [],
-  notes: { "easy": [],
-    "normal": [],
-    "hard": [] },
-    "generatedBy": "'VslicR5' - FNF v0.8.0"
+  notes: { "easy": [], "normal": [], "hard": [] },
+  "generatedBy": "'VslicR5' - FNF v0.8.0"
 };
 jsonInput.value = JSON.stringify(chartData, null, 2);
 
@@ -158,9 +178,7 @@ function saveFromJSON() {
   try {
     chartData = JSON.parse(jsonInput.value);
     drawChart();
-  } catch {
-    alert("Invalid JSON");
-  }
+  } catch { alert("Invalid JSON"); }
 }
 
 function exportJSON() {
@@ -198,6 +216,8 @@ function stopAudio(){
 function seekTime(ms){
   currentTime = Math.max(0, currentTime + ms);
   audio.currentTime = currentTime / 1000;
+  timeLabel.textContent = `Time: ${Math.floor(currentTime)} ms`;
+  drawChart();
 }
 audio.addEventListener("timeupdate",()=>{
   if(!playing) return;
@@ -208,7 +228,7 @@ audio.addEventListener("timeupdate",()=>{
 
 // ---------------- NOTES ----------------
 function addNote(lane) {
-  chartData.notes.normal.push({ t: currentTime, d: lane, l: 0, p:[] });
+  chartData.notes.normal.push({ t: Math.floor(currentTime), d: lane, l: 0, p:[] });
   chartData.notes.normal.sort((a,b)=>a.t-b.t);
   syncTextarea();
   drawChart();
@@ -231,16 +251,15 @@ function drawChart() {
 
   for(const n of notes){
     const x = n.d*110+50;
-    const y = centerY - (n.t-currentTime)*0.05;
+    const y = centerY - (n.t-currentTime)*0.5; // Adjusted zoom slightly for visibility
     if(y<-50||y>canvas.height+50) continue;
 
     const baseColor = laneColors[n.d % 4];
 
-    // HOLD TRAIL
     if(n.l > 0){
       ctx.globalAlpha = 0.6;
       ctx.fillStyle = baseColor;
-      ctx.fillRect(x-6, y, 12, n.l*0.05);
+      ctx.fillRect(x-6, y, 12, n.l*0.5);
       ctx.globalAlpha = 1;
     }
 
