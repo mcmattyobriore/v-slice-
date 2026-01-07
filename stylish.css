@@ -61,7 +61,7 @@ canvas {
   max-width: 900px;
 }
 
-/* === ICON BUTTON SYSTEM (play / pause / stop / import / music) === */
+/* === ICON BUTTON SYSTEM === */
 button,
 .upload-btn {
   width: 44px;
@@ -83,14 +83,12 @@ button:active,
   background: #444;
 }
 
-/* Icon sizing inside square buttons */
 button img,
 .upload-btn img {
   object-fit: contain;
   pointer-events: none;
 }
 
-/* Hide native file input completely */
 .upload-btn input[type="file"] {
   display: none;
 }
@@ -134,24 +132,26 @@ button img,
   align-items: center;
   justify-content: center;
   user-select: none;
+  background: transparent; /* Changed to transparent as requested */
+  border: none; /* Removed borders as requested */
 }
 
+/* Opponent/Player specific button styling */
 .opponent-btn {
-  background: #900 !important;
-  border-color: #f00 !important;
+  background: rgba(153, 0, 0, 0.2) !important; /* Slight tint for visibility */
 }
 
 .player-btn {
-  background: #0055ff !important;
-  border-color: #3399ff !important;
+  background: rgba(0, 85, 255, 0.2) !important;
 }
 
 @media (max-width: 800px) {
   body { flex-direction: column; }
   textarea { width: 100%; height: 200px; }
 }
+
 .player-btn img {
-  image-rendering: pixelated; /* Keeps pixel art sharp when upscaled */
+  image-rendering: pixelated;
   width: 96px;
   height: 96px;
 }
