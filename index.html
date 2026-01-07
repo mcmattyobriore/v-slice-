@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>VslicR5 - Mobile Edition</title>
+<title>VslicR5 - Mobile Support Update</title>
 <link rel="shortcut icon" type="image/png" href="favicon.png">
 
 <!-- Enable standalone (fullscreen) mode on iOS -->
@@ -216,11 +216,11 @@
     </div>
 
     <div class="row">
-      <!-- Trash button with hover effect and confirmation -->
+      <!-- Trash button resets to original JSON structure -->
       <button 
-        onclick="if(confirm('Are you sure you want to delete current textarea content?')){ document.getElementById('jsonInput').value=''; }"
-        onmouseenter="this.querySelector('img').src='..system/trash/trash-eager.png'"
-        onmouseleave="this.querySelector('img').src='..system/trash/trash.png'">
+        onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
+        onmouseenter="this.querySelector('img').src='../system/trash/trash-eager.png'"
+        onmouseleave="this.querySelector('img').src='../system/trash/trash.png'">
         <img src="../system/trash/trash.png" alt="Trash"/>
       </button>
       <button onclick="saveFromJSON()"><img src="save.png"/></button>
@@ -231,6 +231,33 @@
   </div>
 </div>
 
+<script>
+  // Inline helper for the reset logic
+  function resetToDefault() {
+    const defaultData = {
+      "version": "2.0.0",
+      "scrollSpeed": {
+        "easy": 1.8,
+        "normal": 2,
+        "hard": 2.2
+      },
+      "events": [],
+      "notes": {
+        "easy": [],
+        "normal": [],
+        "hard": []
+      },
+      "generatedBy": "VslicR5 - FNF v0.8.0"
+    };
+    
+    // Update the visual data and the text area
+    if (typeof chartData !== 'undefined') chartData = defaultData;
+    document.getElementById('jsonInput').value = JSON.stringify(defaultData, null, 2);
+    
+    // Refresh canvas if function exists
+    if (typeof drawChart === 'function') drawChart();
+  }
+</script>
 <script src="scriptish.js"></script>
 
 </body>
