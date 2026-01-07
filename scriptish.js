@@ -10,6 +10,21 @@ let playing = false;
 
 const laneColors = ["#ff3333", "#33ff33", "#3399ff", "#bb55ff"];
 
+// Preload Images for Canvas
+const assetNames = ["red", "green", "blue", "purple"];
+const playerImages = assetNames.map(name => {
+  const img = new Image();
+  img.src = `arrow_${name}.png`;
+  img.onload = () => drawChart();
+  return img;
+});
+const opponentImages = assetNames.map(name => {
+  const img = new Image();
+  img.src = `arrow_miss_${name}.png`;
+  img.onload = () => drawChart();
+  return img;
+});
+
 // Keyboard input
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
@@ -73,7 +88,6 @@ function importAudio(input) {
   audio.load();
   currentTime = 0;
   playing = false;
-  // Wait for metadata to load to get duration for the label
   audio.onloadedmetadata = () => {
     updateTimeLabel();
   };
@@ -135,18 +149,27 @@ function drawChart() {
     const y = centerY - (n.t - currentTime) * 0.5;
     if (y < -50 || y > canvas.height + 50) continue;
 
-    const c = laneColors[n.d % 4];
-    if (n.d <= 3) {
-      ctx.fillStyle = c;
-      ctx.fillRect(x-15,y-15,30,30);
+    const laneIndex = n.d % 4;
+    // Player lanes are 0,1,2,3. Opponent lanes are 4,5,6,7.
+    const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
+
+    if (img.complete && img.naturalWidth !== 0) {
+      // Draw the image centered. 40x40 size matches your button scale.
+      ctx.drawImage(img, x - 20, y - 20, 40, 40);
     } else {
-      ctx.strokeStyle = c;
-      ctx.lineWidth = 4;
-      ctx.strokeRect(x-15,y-15,30,30);
+      // Fallback to colors if images fail to load
+      const c = laneColors[laneIndex];
+      if (n.d <= 3) {
+        ctx.fillStyle = c;
+        ctx.fillRect(x-15,y-15,30,30);
+      } else {
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(x-15,y-15,30,30);
+      }
     }
   }
 }
 
-// Ensure label displays correctly on initial load
 updateTimeLabel();
 drawChart();
