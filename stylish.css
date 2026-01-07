@@ -1,0 +1,160 @@
+/* Disable text selection & tap highlights */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow selection ONLY where needed */
+textarea, input {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Prevent focus outlines & mobile glow */
+button, canvas, img, label {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS rubber-band + double-tap zoom */
+html, body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  gap: 12px;
+  background: #111;
+  color: #eee;
+  margin: 0;
+  padding: 10px;
+}
+
+textarea {
+  width: 320px;
+  height: 90vh;
+  background: #1e1e1e;
+  color: #0f0;
+  border: 1px solid #444;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+canvas {
+  background: #000;
+  border: 1px solid #444;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* === ICON BUTTON SYSTEM (play / pause / stop / import / music) === */
+button,
+.upload-btn {
+  width: 44px;
+  height: 44px;
+  aspect-ratio: 1 / 1;
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+button:active,
+.upload-btn:active {
+  background: #444;
+}
+
+/* Icon sizing inside square buttons */
+button img,
+.upload-btn img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Hide native file input completely */
+.upload-btn input[type="file"] {
+  display: none;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.mobile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 10px;
+  background: #222;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.m-btn {
+  width: 40px;
+  height: 40px;
+  aspect-ratio: 1 / 1;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.opponent-btn {
+  background: #900 !important;
+  border-color: #f00 !important;
+}
+
+.player-btn {
+  background: #0055ff !important;
+  border-color: #3399ff !important;
+}
+
+@media (max-width: 800px) {
+  body { flex-direction: column; }
+  textarea { width: 100%; height: 200px; }
+}
+
+img {
+  image-rendering: pixelated;
+}
