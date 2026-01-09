@@ -8,7 +8,7 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-const laneColors = ["#ff3333", "#33ff33", "#3399ff", "#bb55ff"];
+const laneColors = [];
 
 // Preload Images for Canvas with updated file paths
 const assetNames = ["red", "green", "blue", "purple"];
