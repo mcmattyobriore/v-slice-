@@ -8,22 +8,28 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-const laneColors = [];
+// 1. UPDATED ASSET LOADING
+// Order: 0:Left, 1:Down, 2:Up, 3:Right
+const arrowTypes = ["purple", "blue", "green", "red"]; 
 
-// Preload Images for Canvas with updated file paths
-const assetNames = ["red", "green", "blue", "purple"];
-const playerImages = assetNames.map(name => {
+const playerImages = arrowTypes.map(color => {
   const img = new Image();
-  img.src = `../system/arrow_${name}.png`;
+  // Using your path structure: ../system/arrow_COLOR.png
+  img.src = `../system/arrow_${color}.png`;
   img.onload = () => drawChart();
   return img;
 });
-const opponentImages = assetNames.map(name => {
+
+const opponentImages = arrowTypes.map(color => {
   const img = new Image();
-  img.src = `../system/arrow_miss_${name}.png`;
+  // Using your path structure: ../system/arrow_miss_COLOR.png
+  img.src = `../system/arrow_miss_${color}.png`;
   img.onload = () => drawChart();
   return img;
 });
+
+// Fallback colors just in case images fail to load
+const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
 
 // Keyboard input
 window.addEventListener("keydown", e => {
@@ -50,7 +56,6 @@ chartData = {
   generatedBy: "VslicR5 - FNF v0.8.0"
 };
 
-// Initial Load from LocalStorage if it exists
 if (localStorage.getItem("vslicr5_chart")) {
   try {
     chartData = JSON.parse(localStorage.getItem("vslicr5_chart"));
@@ -60,7 +65,6 @@ jsonInput.value = JSON.stringify(chartData, null, 2);
 
 function saveToLocalStorage() {
   try {
-    // Sync chartData with whatever is currently in the text area first
     chartData = JSON.parse(jsonInput.value);
     localStorage.setItem("vslicr5_chart", jsonInput.value);
     alert("Chart saved to local storage!");
@@ -129,29 +133,22 @@ audio.addEventListener("timeupdate", () => {
 });
 
 function addNote(lane) {
-  const newNote = {
-    t: Math.floor(currentTime),
-    d: lane,
-    l: 0,
-    p: []
-  };
-
-  // Add to all difficulty levels
+  const newNote = { t: Math.floor(currentTime), d: lane, l: 0, p: [] };
   chartData.notes.easy.push({...newNote});
   chartData.notes.normal.push({...newNote});
   chartData.notes.hard.push({...newNote});
-
-  // Sort all levels by time
   chartData.notes.easy.sort((a,b)=>a.t-b.t);
   chartData.notes.normal.sort((a,b)=>a.t-b.t);
   chartData.notes.hard.sort((a,b)=>a.t-b.t);
-
   syncTextarea();
   drawChart();
 }
 
+// 2. UPDATED DRAW LOGIC
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.imageSmoothingEnabled = false; // Keep that pixelated look
+  
   const centerY = canvas.height / 2;
 
   // Draw Lane Dividers
@@ -163,31 +160,32 @@ function drawChart() {
     ctx.stroke();
   }
 
-  // Render notes from 'normal' array as a visual reference
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
+    
     if (y < -50 || y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
+    // Lanes 0-3 are Player (standard arrows), 4-7 are Opponent (miss arrows)
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
     if (img.complete && img.naturalWidth !== 0) {
+      // Centering the 40x40 arrow on the lane
       ctx.drawImage(img, x - 20, y - 20, 40, 40);
     } else {
-      const c = laneColors[laneIndex];
+      // Color fallback if images are missing
+      ctx.fillStyle = laneColors[laneIndex];
       if (n.d <= 3) {
-        ctx.fillStyle = c;
         ctx.fillRect(x-15,y-15,30,30);
       } else {
-        ctx.strokeStyle = c;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = ctx.fillStyle;
         ctx.strokeRect(x-15,y-15,30,30);
       }
     }
   }
 }
 
-// Make sure your HTML "Save" button calls saveToLocalStorage()
 updateTimeLabel();
 drawChart();
