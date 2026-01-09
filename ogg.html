@@ -5,97 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>VslicR5 - OGG Converter</title>
 <style>
-  /* MATCHING YOUR INDEX CSS */
-  * {
-    -webkit-tap-highlight-color: transparent;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #eee;
-    margin: 0;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .logo-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-
-  .logo-container img {
-    width: 120px;
-    height: 120px;
-    image-rendering: pixelated;
-    object-fit: contain;
-  }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+  
+  .logo-container { width: 100%; display: flex; justify-content: center; margin-bottom: 20px; }
+  .logo-container img { width: 120px; height: 120px; image-rendering: pixelated; object-fit: contain; }
 
   .main-content {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 600px;
-    gap: 12px;
-    background: #1e1e1e;
-    padding: 20px;
-    border: 1px solid #444;
-    border-radius: 8px;
+    display: flex; flex-direction: column; width: 100%; max-width: 600px; gap: 12px;
+    background: #1e1e1e; padding: 20px; border: 1px solid #444; border-radius: 8px;
   }
 
   .status-box {
-    width: 100%;
-    height: 100px;
-    background: #000;
-    color: #0f0;
-    border: 1px solid #444;
-    padding: 8px;
-    font-family: monospace;
-    font-size: 12px;
-    overflow-y: auto;
-    margin-bottom: 10px;
+    width: 100%; height: 120px; background: #000; color: #0f0; border: 1px solid #444;
+    padding: 8px; font-family: monospace; font-size: 11px; overflow-y: auto; margin-bottom: 5px;
   }
 
-  .row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-  }
+  /* Progress Bar Styling */
+  .progress-container { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-bottom: 10px; display: none; }
+  #progressBar { width: 0%; height: 100%; background: #0f0; transition: width 0.3s; }
+
+  .row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
 
   button, .upload-btn {
-    padding: 10px 20px;
-    background: #222;
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 12px;
+    padding: 12px 15px; background: #222; color: #fff; border: 1px solid #555;
+    border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;
   }
 
   button:active, .upload-btn:active { background: #444; }
-  button:disabled { color: #666; cursor: not-allowed; }
+  button:disabled { color: #666; cursor: not-allowed; border-color: #333; }
 
   #downloadLink {
-    display: none;
-    color: #00f2ff;
-    text-decoration: none;
-    border: 1px solid #00f2ff;
-    padding: 10px;
-    text-align: center;
-    border-radius: 6px;
-    margin-top: 10px;
+    display: none; color: #000; background: #00f2ff; text-decoration: none;
+    padding: 15px; text-align: center; border-radius: 6px; font-weight: bold; margin-top: 10px;
   }
 </style>
 </head>
-
 <body>
 
 <div class="logo-container">
@@ -103,76 +48,121 @@
 </div>
 
 <div class="main-content">
-  <h2 style="margin-top:0; text-align:center; color:#0f0;">OGG CONVERTER</h2>
+  <h2 style="margin:0; text-align:center; color:#0f0; font-size: 18px;">OGG CONVERTER</h2>
   
-  <div class="status-box" id="log">Ready to load...</div>
+  <div class="status-box" id="log">Initializing Engine...</div>
+
+  <div class="progress-container" id="progCont">
+    <div id="progressBar"></div>
+  </div>
 
   <div class="row">
     <label class="upload-btn">
-      SELECT FILE (MP4/MP3/WAV)
-      <input type="file" id="fileInput" hidden />
+      SELECT MEDIA
+      <input type="file" id="fileInput" accept="audio/*,video/*" hidden />
     </label>
     <button id="convertBtn" disabled>CONVERT TO .OGG</button>
   </div>
 
-  <a id="downloadLink">DOWNLOAD CONVERTED OGG</a>
+  <a id="downloadLink">DOWNLOAD READY FILE</a>
 </div>
 
-<!-- Load FFmpeg.wasm from CDN -->
+<!-- FFmpeg library with correct CDN -->
 <script src="unpkg.com"></script>
 
 <script>
   const { createFFmpeg, fetchFile } = FFmpeg;
+  // Set log to true to see internal processing in browser console
   const ffmpeg = createFFmpeg({ log: true });
   
   const logEl = document.getElementById('log');
   const convertBtn = document.getElementById('convertBtn');
   const fileInput = document.getElementById('fileInput');
   const downloadLink = document.getElementById('downloadLink');
+  const progCont = document.getElementById('progCont');
+  const progressBar = document.getElementById('progressBar');
 
   function updateLog(msg) {
-    logEl.innerText += `\n> ${msg}`;
+    const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    logEl.innerHTML += `<div>[${time}] ${msg}</div>`;
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  // Initialize FFmpeg
+  // Handle Progress
+  ffmpeg.setProgress(({ ratio }) => {
+    const pct = Math.floor(ratio * 100);
+    progressBar.style.width = pct + '%';
+    if(pct > 0) updateLog(`Processing: ${pct}%`);
+  });
+
+  // Load FFmpeg Engine
   (async () => {
-    updateLog("Loading FFmpeg engine...");
-    await ffmpeg.load();
-    updateLog("Engine Ready.");
-    convertBtn.disabled = false;
+    try {
+      await ffmpeg.load();
+      updateLog("Engine Ready. Upload a file.");
+      convertBtn.disabled = false;
+    } catch (e) {
+      updateLog("<span style='color:red'>Error: SharedArrayBuffer not enabled. Check site security headers.</span>");
+      console.error(e);
+    }
   })();
 
   convertBtn.addEventListener('click', async () => {
-    if (!fileInput.files[0]) return alert("Please select a file first!");
-    
     const file = fileInput.files[0];
-    const name = file.name.split('.').slice(0, -1).join('.');
+    if (!file) return alert("Please select a file first!");
     
+    const fileName = file.name;
+    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    
+    // UI Setup
     convertBtn.disabled = true;
-    updateLog(`Starting conversion: ${file.name}`);
+    downloadLink.style.display = 'none';
+    progCont.style.display = 'block';
+    progressBar.style.width = '0%';
+    updateLog(`Reading file: ${fileName}`);
 
-    // Write file to virtual memory
-    ffmpeg.FS('writeFile', 'input', await fetchFile(file));
+    try {
+      // Load file into FFmpeg virtual FS
+      ffmpeg.FS('writeFile', 'input_file', await fetchFile(file));
 
-    // Run conversion (strips video if present, converts to ogg)
-    // -vn removes video, -c:a libvorbis is the standard ogg codec
-    await ffmpeg.run('-i', 'input', '-vn', '-c:a', 'libvorbis', 'output.ogg');
+      updateLog("Converting to OGG (Vorbis)...");
+      
+      /* 
+         FFmpeg Command:
+         -i input_file : input
+         -vn           : disable video (audio only)
+         -map_metadata 0 : keep song info
+         -c:a libvorbis : high quality ogg codec
+         -q:a 5        : quality level 5 (~160kbps)
+      */
+      await ffmpeg.run('-i', 'input_file', '-vn', '-map_metadata', '0', '-c:a', 'libvorbis', '-q:a', '5', 'output.ogg');
 
-    // Read result
-    const data = ffmpeg.FS('readFile', 'output.ogg');
+      updateLog("Wrapping up...");
+      const data = ffmpeg.FS('readFile', 'output.ogg');
 
-    // Create Download Link
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'audio/ogg' }));
-    downloadLink.href = url;
-    downloadLink.download = `${name}.ogg`;
-    downloadLink.style.display = 'block';
-    downloadLink.innerText = `DOWNLOAD ${name.toUpperCase()}.OGG`;
-
-    updateLog("Conversion Finished!");
-    convertBtn.disabled = false;
+      // Create downloadable link
+      const blob = new Blob([data.buffer], { type: 'audio/ogg' });
+      const url = URL.createObjectURL(blob);
+      
+      downloadLink.href = url;
+      downloadLink.download = `${baseName}.ogg`;
+      downloadLink.style.display = 'block';
+      downloadLink.innerText = `DOWNLOAD ${baseName.toUpperCase()}.OGG`;
+      
+      updateLog("SUCCESS: File converted.");
+    } catch (err) {
+      updateLog("<span style='color:red'>CONVERSION FAILED!</span>");
+      console.error(err);
+    } finally {
+      convertBtn.disabled = false;
+    }
   });
-</script>
 
+  // Clear previous download if new file selected
+  fileInput.onchange = () => {
+    downloadLink.style.display = 'none';
+    if(fileInput.files[0]) updateLog(`Selected: ${fileInput.files[0].name}`);
+  };
+</script>
 </body>
 </html>
