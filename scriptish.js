@@ -154,10 +154,10 @@ function drawChart() {
     const y = centerY - (n.t - currentTime) * SCROLL_MULT;
     const holdHeight = n.l * SCROLL_MULT;
 
-    const topY = y - ARROW_HALF - holdHeight;
-    const bottomY = y - ARROW_HALF;
+    // 🔥 FIX: hold starts at note center
+    const topY = y - holdHeight;
 
-    if (bottomY < 0 || topY > canvas.height) continue;
+    if (y < 0 || topY > canvas.height) continue;
 
     const lane = n.d % 4;
 
