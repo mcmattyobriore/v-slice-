@@ -8,30 +8,27 @@ let chartData;
 let currentTime = 0;
 let playing = false;
 
-// 1. UPDATED ASSET LOADING
-// Order: 0:Left, 1:Down, 2:Up, 3:Right
-const arrowTypes = ["purple", "blue", "green", "red"]; 
+// EXACT DIRECTION MAPPING
+// Lane 0 = Left (Purple), 1 = Down (Blue), 2 = Up (Green), 3 = Right (Red)
+const directions = ["purple", "blue", "green", "red"];
 
-const playerImages = arrowTypes.map(color => {
+const playerImages = directions.map(dir => {
   const img = new Image();
-  // Using your path structure: ../system/arrow_COLOR.png
-  img.src = `../system/arrow_${color}.png`;
+  img.src = `../system/arrow_${dir}.png`;
   img.onload = () => drawChart();
   return img;
 });
 
-const opponentImages = arrowTypes.map(color => {
+const opponentImages = directions.map(dir => {
   const img = new Image();
-  // Using your path structure: ../system/arrow_miss_COLOR.png
-  img.src = `../system/arrow_miss_${color}.png`;
+  img.src = `../system/arrow_miss_${dir}.png`;
   img.onload = () => drawChart();
   return img;
 });
 
-// Fallback colors just in case images fail to load
+// Fallback colors for lanes
 const laneColors = ["#C24B99", "#00FFFF", "#12FA05", "#F9393F"];
 
-// Keyboard input
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
   switch(e.key.toLowerCase()) {
@@ -47,7 +44,6 @@ window.addEventListener("keydown", e => {
   }
 });
 
-// Default chart structure
 chartData = {
   "version": "2.0.0",
   "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
@@ -144,14 +140,12 @@ function addNote(lane) {
   drawChart();
 }
 
-// 2. UPDATED DRAW LOGIC
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.imageSmoothingEnabled = false; // Keep that pixelated look
-  
+  ctx.imageSmoothingEnabled = false; // Ensures pixelated rendering
   const centerY = canvas.height / 2;
 
-  // Draw Lane Dividers
+  // Lane Dividers
   for (let i=0;i<8;i++) {
     ctx.strokeStyle="#333";
     ctx.beginPath();
@@ -163,24 +157,21 @@ function drawChart() {
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
-    
     if (y < -50 || y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
-    // Lanes 0-3 are Player (standard arrows), 4-7 are Opponent (miss arrows)
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
     if (img.complete && img.naturalWidth !== 0) {
-      // Centering the 40x40 arrow on the lane
       ctx.drawImage(img, x - 20, y - 20, 40, 40);
     } else {
-      // Color fallback if images are missing
-      ctx.fillStyle = laneColors[laneIndex];
+      const c = laneColors[laneIndex];
+      ctx.fillStyle = c;
       if (n.d <= 3) {
         ctx.fillRect(x-15,y-15,30,30);
       } else {
+        ctx.strokeStyle = c;
         ctx.lineWidth = 2;
-        ctx.strokeStyle = ctx.fillStyle;
         ctx.strokeRect(x-15,y-15,30,30);
       }
     }
