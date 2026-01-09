@@ -40,6 +40,10 @@ const opponentImages = opponentPaths.map(path => {
   return img;
 });
 
+// Rotation mapping (Assuming default image is pointing UP)
+// 0: Left (-90deg), 1: Down (180deg), 2: Up (0deg), 3: Right (90deg)
+const rotations = [-Math.PI / 2, Math.PI, 0, Math.PI / 2];
+
 window.addEventListener("keydown", e => {
   if (document.activeElement === jsonInput) return;
   switch(e.key.toLowerCase()) {
@@ -55,7 +59,6 @@ window.addEventListener("keydown", e => {
   }
 });
 
-// Default chart structure
 chartData = {
   "version": "2.0.0",
   "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
@@ -155,7 +158,7 @@ function addNote(lane) {
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   
-  // Keep rendering pixelated for the 2026 style
+  // RENDER PIXELATED: This is critical for the 2026 pixel-art look
   ctx.imageSmoothingEnabled = false; 
   
   const centerY = canvas.height / 2;
@@ -169,24 +172,27 @@ function drawChart() {
     ctx.stroke();
   }
 
-  // Draw the images on the chart
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
-    // Frustum culling (visible range check)
     if (y < -50 || y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    // Square logic is completely removed. Only draws images if they are loaded.
     if (img.complete && img.naturalWidth !== 0) {
-      ctx.drawImage(img, x - 20, y - 20, 40, 40);
+      ctx.save();
+      // Move to note center
+      ctx.translate(x, y);
+      // Rotate based on direction index
+      ctx.rotate(rotations[laneIndex]);
+      // Draw centered at (0,0) - half of 40x40 size is 20
+      ctx.drawImage(img, -20, -20, 40, 40);
+      ctx.restore();
     }
   }
 }
 
-// Initial update
 updateTimeLabel();
 drawChart();
