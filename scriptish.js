@@ -55,6 +55,7 @@ window.addEventListener("keydown", e => {
   }
 });
 
+// Default chart structure
 chartData = {
   "version": "2.0.0",
   "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
@@ -154,7 +155,7 @@ function addNote(lane) {
 function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   
-  // Disable smoothing for pixelated arrows
+  // Keep rendering pixelated for the 2026 style
   ctx.imageSmoothingEnabled = false; 
   
   const centerY = canvas.height / 2;
@@ -173,17 +174,19 @@ function drawChart() {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
-    // Only render what is visible on screen
+    // Frustum culling (visible range check)
     if (y < -50 || y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    // Draw the image centered at the current note position
-    // Squares are gone; images are drawn directly here
-    ctx.drawImage(img, x - 20, y - 20, 40, 40);
+    // Square logic is completely removed. Only draws images if they are loaded.
+    if (img.complete && img.naturalWidth !== 0) {
+      ctx.drawImage(img, x - 20, y - 20, 40, 40);
+    }
   }
 }
 
+// Initial update
 updateTimeLabel();
 drawChart();
