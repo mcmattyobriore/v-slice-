@@ -173,17 +173,17 @@
     <canvas id="chart" width="900" height="400"></canvas>
 
     <div class="row">
-      <label class="upload-btn">
+      <label class="upload-btn" title="import your json charts here!">
         <img src="import.png" alt="import JSON" />
         <input type="file" accept=".json" onchange="importJSON(this)" hidden />
       </label>
-      <label class="upload-btn">
+      <label class="upload-btn" title="import your ogg files here!">
         <img src="music.png" alt="import Audio" />
         <input type="file" accept=".ogg,.wav,.mp3,audio/*" onchange="importAudio(this)" hidden />
       </label>
-      <button onclick="playAudio()"><img src="play.png"/></button>
-      <button onclick="pauseAudio()"><img src="pause.png"/></button>
-      <button onclick="stopAudio()"><img src="stop.png"/></button>
+      <button onclick="playAudio()" title="play the ogg file"><img src="play.png"/></button>
+      <button onclick="pauseAudio()" title="pause the ogg file"><img src="pause.png"/></button>
+      <button onclick="stopAudio()" title="go back to 0ms"><img src="stop.png"/></button>
     </div>
 
     <div class="row">
@@ -215,16 +215,16 @@
 
     <div class="row">
       <!-- Trash button resets to original JSON structure -->
-      <button 
+      <button title="reset ur chart?"
         onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
         onmouseenter="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_eager.png'"
         onmouseleave="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png'">
         <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png" alt="Trash"/>
       </button>
-<button onclick="saveToLocalStorage()">
+<button title="save your current chart? (stays after reload)" onclick="saveToLocalStorage()">
   <img src="save.png" alt="save" />
 </button>
-      <button onclick="exportJSON()"><img src="export.png"/></button>
+      <button title="export your chart?" onclick="exportJSON()"><img src="export.png"/></button>
     </div>
 
     <audio id="audio"></audio>
