@@ -39,6 +39,57 @@
     touch-action: manipulation;
   }
 
+  /* --- DASHBOARD STYLES --- */
+  #dashboard-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  #dashboard-icon {
+    width: 50px;
+    height: 50px;
+    image-rendering: pixelated;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  #dashboard-icon:hover {
+    transform: scale(1.1);
+  }
+
+  #dashboard-menu {
+    display: none;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    margin-top: 10px;
+    padding: 5px;
+    width: 150px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  }
+
+  #dashboard-menu a {
+    display: block;
+    padding: 10px;
+    color: #0f0;
+    text-decoration: none;
+    font-family: monospace;
+    font-size: 13px;
+    border-bottom: 1px solid #333;
+  }
+
+  #dashboard-menu a:last-child { border-bottom: none; }
+
+  #dashboard-menu a:hover {
+    background: #222;
+    color: #fff;
+  }
+
   .logo-container {
     width: 100%;
     display: flex;
@@ -151,11 +202,27 @@
   @media (max-width: 800px) {
     .main-content { flex-direction: column; }
     textarea { width: 100%; height: 200px; }
+    #dashboard-container { top: 10px; right: 10px; } /* Adjust for mobile */
   }
 </style>
 </head>
 
 <body>
+
+<!-- DASHBOARD COMPONENT -->
+<div id="dashboard-container">
+  <img 
+    src="dashboard.png" 
+    id="dashboard-icon" 
+    alt="Dashboard" 
+    onclick="toggleDashboard()"
+  >
+  <div id="dashboard-menu">
+    <a href="ogg.html">OGG Converter</a>
+    <a href="xml.html">XML Viewer</a>
+    <a href="test.html">Test Page</a>
+  </div>
+</div>
 
 <div class="logo-container" id="logoWrapper">
   <img 
@@ -214,16 +281,15 @@
     </div>
 
     <div class="row">
-      <!-- Trash button resets to original JSON structure -->
       <button title="reset ur chart?"
         onclick="if(confirm('Are you sure you want to reset the chart?')){ resetToDefault(); }"
         onmouseenter="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_eager.png'"
         onmouseleave="this.querySelector('img').src='https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png'">
         <img src="https://raw.githubusercontent.com/mcmattyobriore/vslicr5/main/system/trash/trash_closed.png" alt="Trash"/>
       </button>
-<button title="save your current chart? (stays after reload)" onclick="saveToLocalStorage()">
-  <img src="save.png" alt="save" />
-</button>
+      <button title="save your current chart? (stays after reload)" onclick="saveToLocalStorage()">
+        <img src="save.png" alt="save" />
+      </button>
       <button title="export your chart?" onclick="exportJSON()"><img src="export.png"/></button>
     </div>
 
@@ -232,29 +298,33 @@
 </div>
 
 <script>
-  // Inline helper for the reset logic
+  // Dashboard toggle logic
+  function toggleDashboard() {
+    const menu = document.getElementById('dashboard-menu');
+    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+  }
+
+  // Close dashboard if clicking outside
+  window.onclick = function(event) {
+    if (!event.target.matches('#dashboard-icon')) {
+      const menu = document.getElementById('dashboard-menu');
+      if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+      }
+    }
+  }
+
   function resetToDefault() {
     const defaultData = {
       "version": "2.0.0",
-      "scrollSpeed": {
-        "easy": 1.8,
-        "normal": 2,
-        "hard": 2.2
-      },
+      "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
       "events": [],
-      "notes": {
-        "easy": [],
-        "normal": [],
-        "hard": []
-      },
+      "notes": { "easy": [], "normal": [], "hard": [] },
       "generatedBy": "VslicR5 - FNF v0.8.0"
     };
     
-    // Update the visual data and the text area
     if (typeof chartData !== 'undefined') chartData = defaultData;
     document.getElementById('jsonInput').value = JSON.stringify(defaultData, null, 2);
-    
-    // Refresh canvas if function exists
     if (typeof drawChart === 'function') drawChart();
   }
 </script>
