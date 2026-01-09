@@ -41,23 +41,33 @@ window.addEventListener("keydown", e => {
   }
 });
 
-// Default chart
+// Default chart structure
 chartData = {
   "version": "2.0.0",
-  "scrollSpeed": {
-    "easy": 1.8,
-    "normal": 2,
-    "hard": 2.2
-  },
+  "scrollSpeed": { "easy": 1.8, "normal": 2, "hard": 2.2 },
   "events": [],
-  "notes": {
-    "easy": [],
-    "normal": [], 
-    "hard": [] 
-  },
+  "notes": { "easy": [], "normal": [], "hard": [] },
   generatedBy: "VslicR5 - FNF v0.8.0"
 };
+
+// Initial Load from LocalStorage if it exists
+if (localStorage.getItem("vslicr5_chart")) {
+  try {
+    chartData = JSON.parse(localStorage.getItem("vslicr5_chart"));
+  } catch(e) { console.error("Error loading saved chart", e); }
+}
 jsonInput.value = JSON.stringify(chartData, null, 2);
+
+function saveToLocalStorage() {
+  try {
+    // Sync chartData with whatever is currently in the text area first
+    chartData = JSON.parse(jsonInput.value);
+    localStorage.setItem("vslicr5_chart", jsonInput.value);
+    alert("Chart saved to local storage!");
+  } catch (e) {
+    alert("Error: Invalid JSON in text area. Could not save.");
+  }
+}
 
 function updateTimeLabel() {
   const current = Math.floor(currentTime);
@@ -88,9 +98,7 @@ function importAudio(input) {
   audio.load();
   currentTime = 0;
   playing = false;
-  audio.onloadedmetadata = () => {
-    updateTimeLabel();
-  };
+  audio.onloadedmetadata = () => updateTimeLabel();
   updateTimeLabel();
   drawChart();
 }
@@ -121,13 +129,23 @@ audio.addEventListener("timeupdate", () => {
 });
 
 function addNote(lane) {
-  chartData.notes.normal.push({
+  const newNote = {
     t: Math.floor(currentTime),
     d: lane,
     l: 0,
     p: []
-  });
+  };
+
+  // Add to all difficulty levels
+  chartData.notes.easy.push({...newNote});
+  chartData.notes.normal.push({...newNote});
+  chartData.notes.hard.push({...newNote});
+
+  // Sort all levels by time
+  chartData.notes.easy.sort((a,b)=>a.t-b.t);
   chartData.notes.normal.sort((a,b)=>a.t-b.t);
+  chartData.notes.hard.sort((a,b)=>a.t-b.t);
+
   syncTextarea();
   drawChart();
 }
@@ -136,6 +154,7 @@ function drawChart() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const centerY = canvas.height / 2;
 
+  // Draw Lane Dividers
   for (let i=0;i<8;i++) {
     ctx.strokeStyle="#333";
     ctx.beginPath();
@@ -144,6 +163,7 @@ function drawChart() {
     ctx.stroke();
   }
 
+  // Render notes from 'normal' array as a visual reference
   for (const n of chartData.notes.normal) {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
@@ -168,5 +188,6 @@ function drawChart() {
   }
 }
 
+// Make sure your HTML "Save" button calls saveToLocalStorage()
 updateTimeLabel();
 drawChart();
