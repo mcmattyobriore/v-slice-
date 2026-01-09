@@ -181,30 +181,29 @@ function drawChart() {
     const x = n.d * 110 + 50;
     const y = centerY - (n.t - currentTime) * 0.5;
     
-    // Check visibility (including long note tails)
     if (y < -50 && y + (n.l * 0.5) < -50) continue;
     if (y > canvas.height + 50) continue;
 
     const laneIndex = n.d % 4;
     const img = n.d <= 3 ? playerImages[laneIndex] : opponentImages[laneIndex];
 
-    // 1. Draw Long Note Body (if l > 0)
-    if (n.l > 0) {
-      const holdHeight = n.l * 0.5;
-      ctx.globalAlpha = 0.6; // 60% opacity
-      ctx.fillStyle = laneColors[laneIndex];
-      // Draw centered hold bar
-      ctx.fillRect(x - 10, y, 20, holdHeight);
-      ctx.globalAlpha = 1.0;
-    }
-
-    // 2. Draw Arrow Image
+    // 1. Draw Arrow Image FIRST
     if (img.complete && img.naturalWidth !== 0) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotations[laneIndex]);
       ctx.drawImage(img, -20, -20, 40, 40);
       ctx.restore();
+    }
+
+    // 2. Draw Long Note Body SECOND (to ensure it is on top)
+    if (n.l > 0) {
+      const holdHeight = n.l * 0.5;
+      ctx.globalAlpha = 0.6; // 60% opacity
+      ctx.fillStyle = laneColors[laneIndex];
+      // Draw centered hold bar on top of the head
+      ctx.fillRect(x - 10, y, 20, holdHeight);
+      ctx.globalAlpha = 1.0;
     }
   }
 }
